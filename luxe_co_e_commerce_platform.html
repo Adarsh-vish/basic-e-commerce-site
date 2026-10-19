@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxe & Co. - Premium E-Commerce Store</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            accent: '#6366f1' // Indigo accent
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 h-full flex flex-col transition-colors duration-200">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 lg:px-8 py-3.5 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('store')">
+            <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl shadow-md shadow-indigo-500/20">
+                <i class="fa-solid fa-bag-shopping"></i>
+            </div>
+            <div>
+                <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">Luxe & Co.</span>
+                <span class="text-[10px] block text-slate-400 uppercase tracking-widest font-semibold">Curated Store</span>
+            </div>
+        </div>
+
+        <!-- Center Search (Desktop) -->
+        <div class="hidden md:flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-2xl border border-slate-200 dark:border-slate-700 w-96">
+            <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm ml-1"></i>
+            <input type="text" id="searchInput" placeholder="Search premium products..." class="bg-transparent border-none outline-none text-sm w-full px-2 text-slate-700 dark:text-slate-200 placeholder-slate-400" oninput="handleSearch(this.value)">
+        </div>
+
+        <!-- Right Side Controls -->
+        <div class="flex items-center space-x-3">
+            <!-- Theme Toggle -->
+            <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+            </button>
+
+            <!-- Cart Trigger Button -->
+            <button onclick="openCartDrawer()" class="relative bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 w-10 h-10 rounded-full flex items-center justify-center text-slate-700 dark:text-slate-200 transition border border-slate-200 dark:border-slate-700">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span id="cartBadge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md">0</span>
+            </button>
+
+            <!-- User Auth / Profile Dropdown -->
+            <div class="relative">
+                <button onclick="toggleUserMenu()" id="userMenuBtn" class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 p-1.5 pr-3 rounded-full transition border border-slate-200 dark:border-slate-700">
+                    <img id="navUserAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-7 h-7 rounded-full object-cover">
+                    <span id="navUserName" class="text-xs font-semibold max-w-[100px] truncate">Guest</span>
+                    <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+                </button>
+
+                <!-- Dropdown -->
+                <div id="userDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50">
+                    <div id="authMenuContent" class="py-1">
+                        <!-- Populated dynamically based on login state -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 flex overflow-hidden max-w-7xl mx-auto w-full p-4 md:p-6 lg:p-8">
+        <main class="flex-1 overflow-y-auto space-y-8">
+
+            <!-- STORE VIEW (Catalog & Categories) -->
+            <div id="storeView" class="space-y-8">
+                <!-- Hero Banner -->
+                <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-indigo-900 via-slate-900 to-violet-950 text-white p-8 md:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between">
+                    <div class="space-y-4 max-w-lg z-10">
+                        <span class="bg-indigo-500/30 border border-indigo-400/30 text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full">New Autumn Collection</span>
+                        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">Elevate Your Everyday Style</h1>
+                        <p class="text-slate-300 text-sm md:text-base">Discover handcrafted accessories, premium electronics, and minimalist apparel designed for modern living.</p>
+                        <button onclick="scrollToCatalog()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-indigo-600/30 transition text-sm flex items-center space-x-2">
+                            <span>Explore Catalog</span>
+                            <i class="fa-solid fa-arrow-down text-xs"></i>
+                        </button>
+                    </div>
+                    <div class="mt-6 md:mt-0 z-10">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80" alt="Hero Watch" class="w-64 md:w-80 h-auto rounded-2xl shadow-2xl object-cover border border-white/10">
+                    </div>
+                </div>
+
+                <!-- Category Filters -->
+                <div id="catalogAnchor" class="flex items-center justify-between flex-wrap gap-4 pt-2">
+                    <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0" id="categoryFilterContainer">
+                        <button onclick="setCategory('all')" id="catBtn-all" class="px-5 py-2 rounded-2xl text-xs font-semibold transition bg-indigo-600 text-white shadow-md shadow-indigo-600/20">All Products</button>
+                        <button onclick="setCategory('electronics')" id="catBtn-electronics" class="px-5 py-2 rounded-2xl text-xs font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Electronics</button>
+                        <button onclick="setCategory('apparel')" id="catBtn-apparel" class="px-5 py-2 rounded-2xl text-xs font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Apparel</button>
+                        <button onclick="setCategory('accessories')" id="catBtn-accessories" class="px-5 py-2 rounded-2xl text-xs font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Accessories</button>
+                    </div>
+                    <span id="productCountLabel" class="text-xs text-slate-400 font-medium">0 items found</span>
+                </div>
+
+                <!-- Product Grid -->
+                <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Products rendered via JS -->
+                </div>
+            </div>
+
+            <!-- ORDER HISTORY VIEW -->
+            <div id="ordersView" class="hidden space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <h2 class="text-2xl font-bold">My Order History</h2>
+                    <button onclick="switchView('store')" class="text-xs font-semibold text-indigo-600 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Back to Store</button>
+                </div>
+                <div id="ordersListContainer" class="space-y-4">
+                    <!-- Orders rendered via JS -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="productModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl rounded-3xl p-6 md:p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col md:flex-row gap-8">
+            <button onclick="closeProductModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 h-72 md:h-96">
+                <img id="modalProductImage" src="" alt="Product" class="w-full h-full object-cover">
+            </div>
+            <div class="w-full md:w-1/2 flex flex-col justify-between space-y-4">
+                <div class="space-y-2">
+                    <span id="modalProductCategory" class="text-[10px] font-bold uppercase tracking-widest text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-1 rounded-full">Category</span>
+                    <h2 id="modalProductName" class="text-2xl font-bold">Product Name</h2>
+                    <p id="modalProductPrice" class="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">$0.00</p>
+                    <p id="modalProductDescription" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-2">Description goes here...</p>
+                </div>
+                <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs font-semibold text-slate-400">Quantity:</span>
+                        <div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                            <button onclick="adjustModalQty(-1)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-sm font-bold">-</button>
+                            <span id="modalQty" class="px-4 text-sm font-bold">1</span>
+                            <button onclick="adjustModalQty(1)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-sm font-bold">+</button>
+                        </div>
+                    </div>
+                    <button id="modalAddToCartBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-cart-plus"></i>
+                        <span>Add to Cart</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart & Checkout Slide-over Drawer -->
+    <div id="cartDrawer" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 justify-end transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+            <!-- Header -->
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-cart-shopping text-indigo-600"></i>
+                    <h3 class="font-bold text-lg">Your Shopping Cart</h3>
+                </div>
+                <button onclick="closeCartDrawer()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cart Items Container -->
+            <div id="cartItemsList" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <!-- Cart items rendered here -->
+            </div>
+
+            <!-- Cart Footer & Checkout Action -->
+            <div id="cartFooter" class="p-6 border-t border-slate-200 dark:border-slate-800 space-y-4 bg-slate-50 dark:bg-slate-900/50">
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between text-slate-500">
+                        <span>Subtotal</span>
+                        <span id="cartSubtotal">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500">
+                        <span>Shipping</span>
+                        <span class="text-emerald-500 font-semibold">Free</span>
+                    </div>
+                    <div class="flex justify-between text-base font-bold text-slate-800 dark:text-slate-100 pt-2 border-t border-slate-200 dark:border-slate-800">
+                        <span>Total</span>
+                        <span id="cartTotal" class="text-indigo-600 dark:text-indigo-400">$0.00</span>
+                    </div>
+                </div>
+                <button onclick="openCheckoutModal()" id="checkoutBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg shadow-indigo-600/30 transition text-sm flex items-center justify-center space-x-2">
+                    <span>Proceed to Secure Checkout</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Checkout Modal -->
+    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-lg">Secure Order Processing</h3>
+                <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="checkoutForm" onsubmit="processOrder(event)" class="space-y-4 text-sm">
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1 text-xs">Full Name</label>
+                    <input type="text" id="shipName" required placeholder="Alex Rivera" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none">
+                </div>
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1 text-xs">Shipping Address</label>
+                    <input type="text" id="shipAddress" required placeholder="123 Luxury Ave, Suite 400" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="font-semibold text-slate-400 block mb-1 text-xs">Credit Card Number</label>
+                        <input type="text" required placeholder="4242 •••• •••• 4242" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none">
+                    </div>
+                    <div>
+                        <label class="font-semibold text-slate-400 block mb-1 text-xs">CVV / Expiry</label>
+                        <input type="text" required placeholder="12/28 • 382" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none">
+                    </div>
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg shadow-indigo-600/30 transition text-sm">
+                        Confirm & Place Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Login / Register) -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 id="authModalTitle" class="font-bold text-lg">User Login</h3>
+                <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm">
+                <div id="authNameField" class="hidden">
+                    <label class="font-semibold text-slate-400 block mb-1 text-xs">Full Name</label>
+                    <input type="text" id="authNameInput" placeholder="Jane Doe" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none">
+                </div>
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1 text-xs">Email Address</label>
+                    <input type="email" id="authEmailInput" required placeholder="name@example.com" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none">
+                </div>
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1 text-xs">Password</label>
+                    <input type="password" id="authPasswordInput" required placeholder="••••••••" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" id="authSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg shadow-indigo-600/30 transition text-sm">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+            <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span id="authToggleText">Don't have an account?</span>
+                <button onclick="toggleAuthMode()" class="text-indigo-600 dark:text-indigo-400 font-semibold ml-1 hover:underline" id="authToggleBtn">Register now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- GLOBAL STATE & MOCK DATABASE ---
+        let state = {
+            products: [
+                { id: 'p1', name: 'Apex Wireless ANC Headphones', category: 'electronics', price: 299.99, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80', description: 'Immersive active noise cancellation with 40-hour battery life and acoustic chamber tuning.' },
+                { id: 'p2', name: 'Chronos Minimalist Chronograph', category: 'accessories', price: 189.50, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80', description: 'Italian leather strap paired with a surgical stainless steel case and sapphire crystal glass.' },
+                { id: 'p3', name: 'Nomad Canvas Backpack', category: 'apparel', price: 120.00, image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80', description: 'Water-resistant waxed canvas build featuring a dedicated padded 16-inch laptop compartment.' },
+                { id: 'p4', name: 'Zenith Mechanical Smart Keyboard', category: 'electronics', price: 165.00, image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop&q=80', description: 'Hot-swappable linear switches with custom RGB backlighting and solid aluminum chassis.' },
+                { id: 'p5', name: 'Cashmere Blend Minimalist Hoodie', category: 'apparel', price: 95.00, image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop&q=80', description: 'Ultra-soft ethically sourced cashmere blend tailored for modern everyday comfort.' },
+                { id: 'p6', name: 'Titanium Minimalist Cardholder', category: 'accessories', price: 45.00, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80', description: 'RFID-blocking aerospace grade titanium wallet holding up to 12 cards with cash strap.' }
+            ],
+            cart: [],
+            users: [],
+            currentUser: null,
+            orders: [],
+            selectedCategory: 'all',
+            searchQuery: '',
+            currentView: 'store', // 'store' or 'orders'
+            modalProduct: null,
+            modalQty: 1,
+            isRegisterMode: false
+        };
+
+        // Persistence Helpers
+        function saveToLocalStorage() {
+            localStorage.setItem('luxe_cart', JSON.stringify(state.cart));
+            localStorage.setItem('luxe_users', JSON.stringify(state.users));
+            localStorage.setItem('luxe_currentUser', JSON.stringify(state.currentUser));
+            localStorage.setItem('luxe_orders', JSON.stringify(state.orders));
+        }
+
+        function loadFromLocalStorage() {
+            const savedCart = localStorage.getItem('luxe_cart');
+            const savedUsers = localStorage.getItem('luxe_users');
+            const savedUser = localStorage.getItem('luxe_currentUser');
+            const savedOrders = localStorage.getItem('luxe_orders');
+
+            if (savedCart) state.cart = JSON.parse(savedCart);
+            if (savedUsers) state.users = JSON.parse(savedUsers);
+            if (savedUser) state.currentUser = JSON.parse(savedUser);
+            if (savedOrders) state.orders = JSON.parse(savedOrders);
+        }
+
+        // --- VIEW & NAVIGATION CONTROLLERS ---
+        function switchView(view) {
+            state.currentView = view;
+            const storeView = document.getElementById('storeView');
+            const ordersView = document.getElementById('ordersView');
+
+            if (view === 'store') {
+                storeView.classList.remove('hidden');
+                ordersView.classList.add('hidden');
+                renderProducts();
+            } else if (view === 'orders') {
+                if (!state.currentUser) {
+                    showToast('Please sign in to view order history', 'error');
+                    openAuthModal();
+                    return;
+                }
+                storeView.classList.add('hidden');
+                ordersView.classList.remove('hidden');
+                renderOrders();
+            }
+            const mainEl = document.querySelector('main');
+            if (mainEl) mainEl.scrollTop = 0;
+        }
+
+        function scrollToCatalog() {
+            document.getElementById('catalogAnchor').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setCategory(cat) {
+            state.selectedCategory = cat;
+            ['all', 'electronics', 'apparel', 'accessories'].forEach(c => {
+                const btn = document.getElementById(`catBtn-${c}`);
+                if (btn) {
+                    if (c === cat) {
+                        btn.className = 'px-5 py-2 rounded-2xl text-xs font-semibold transition bg-indigo-600 text-white shadow-md shadow-indigo-600/20';
+                    } else {
+                        btn.className = 'px-5 py-2 rounded-2xl text-xs font-semibold transition bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+                    }
+                }
+            });
+            renderProducts();
+        }
+
+        function handleSearch(query) {
+            state.searchQuery = query.toLowerCase().trim();
+            if (state.currentView !== 'store') switchView('store');
+            renderProducts();
+        }
+
+        // --- RENDERING FUNCTIONS ---
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            if (!grid) return;
+
+            let filtered = state.products.filter(p => {
+                const matchesCat = state.selectedCategory === 'all' || p.category === state.selectedCategory;
+                const matchesSearch = p.name.toLowerCase().includes(state.searchQuery) || p.description.toLowerCase().includes(state.searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            const countLabel = document.getElementById('productCountLabel');
+            if (countLabel) countLabel.innerText = `${filtered.length} items found`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
+                        <i class="fa-regular fa-face-frown text-4xl text-slate-300 mb-3"></i>
+                        <p class="text-slate-500 font-medium text-sm">No products found matching your search.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition flex flex-col justify-between group">
+                    <div class="h-64 overflow-hidden bg-slate-100 dark:bg-slate-800 relative cursor-pointer" onclick="openProductModal('${p.id}')">
+                        <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <span class="absolute top-3 left-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">${p.category}</span>
+                    </div>
+                    <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 onclick="openProductModal('${p.id}')" class="font-bold text-base cursor-pointer hover:text-indigo-600 transition truncate">${p.name}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${p.description}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                            <span class="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">$${p.price.toFixed(2)}</span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="openProductModal('${p.id}')" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 flex items-center justify-center text-slate-600 dark:text-slate-300 transition" title="View Details">
+                                    <i class="fa-regular fa-eye text-xs"></i>
+                                </button>
+                                <button onclick="addToCart('${p.id}', 1)" class="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 transition" title="Add to Cart">
+                                    <i class="fa-solid fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItemsList');
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const totalEl = document.getElementById('cartTotal');
+            const badge = document.getElementById('cartBadge');
+
+            const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+            if (badge) badge.innerText = totalItems;
+
+            if (state.cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 space-y-3">
+                        <i class="fa-solid fa-cart-shopping text-4xl text-slate-300 dark:text-slate-700"></i>
+                        <p class="text-sm font-medium text-slate-500">Your cart is currently empty.</p>
+                        <button onclick="closeCartDrawer()" class="text-xs font-semibold text-indigo-600 hover:underline">Start shopping</button>
+                    </div>
+                `;
+                if (subtotalEl) subtotalEl.innerText = '$0.00';
+                if (totalEl) totalEl.innerText = '$0.00';
+                return;
+            }
+
+            let subtotal = 0;
+            container.innerHTML = state.cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                return `
+                    <div class="flex items-center space-x-4 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <img src="${item.image}" class="w-16 h-16 rounded-xl object-cover">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-xs truncate">${item.name}</h4>
+                            <p class="text-xs text-indigo-600 dark:text-indigo-400 font-bold mt-0.5">$${item.price.toFixed(2)}</p>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <button onclick="updateCartQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">-</button>
+                                <span class="text-xs font-bold">${item.quantity}</span>
+                                <button onclick="updateCartQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">+</button>
+                            </div>
+                        </div>
+                        <button onclick="removeFromCart('${item.id}')" class="text-slate-400 hover:text-rose-500 p-2 transition">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            if (subtotalEl) subtotalEl.innerText = `$${subtotal.toFixed(2)}`;
+            if (totalEl) totalEl.innerText = `$${subtotal.toFixed(2)}`;
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersListContainer');
+            if (!container) return;
+
+            const userOrders = state.orders.filter(o => o.userEmail === state.currentUser?.email);
+
+            if (userOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
+                        <i class="fa-solid fa-box-open text-4xl text-slate-300 mb-3"></i>
+                        <p class="text-slate-500 font-medium text-sm">You have not placed any orders yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = userOrders.map(o => `
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-500">Order ID: #${o.id}</span>
+                            <p class="text-[11px] text-slate-400">${new Date(o.createdAt).toLocaleString()}</p>
+                        </div>
+                        <span class="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full">${o.status}</span>
+                    </div>
+                    <div class="space-y-2">
+                        ${o.items.map(i => `
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-600 dark:text-slate-300">${i.name} (x${i.quantity})</span>
+                                <span class="font-bold">$${(i.price * i.quantity).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 font-bold text-sm">
+                        <span>Total Paid</span>
+                        <span class="text-indigo-600 dark:text-indigo-400">$${o.total.toFixed(2)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAuthMenu() {
+            const content = document.getElementById('authMenuContent');
+            const navAvatar = document.getElementById('navUserAvatar');
+            const navName = document.getElementById('navUserName');
+            if (!content) return;
+
+            if (state.currentUser) {
+                if (navAvatar) navAvatar.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
+                if (navName) navName.innerText = state.currentUser.name;
+                content.innerHTML = `
+                    <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
+                        <p class="text-xs text-slate-400">Signed in as</p>
+                        <p class="text-sm font-bold truncate">${state.currentUser.email}</p>
+                    </div>
+                    <button onclick="switchView('orders'); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-box w-4 text-center"></i>
+                        <span>My Orders</span>
+                    </button>
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-1">
+                        <button onclick="logoutUser()" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center space-x-2">
+                            <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                if (navAvatar) navAvatar.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80';
+                if (navName) navName.innerText = 'Guest';
+                content.innerHTML = `
+                    <button onclick="openAuthModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-right-to-bracket w-4 text-center"></i>
+                        <span>Sign In / Register</span>
+                    </button>
+                `;
+            }
+        }
+
+        // --- CART ACTIONS ---
+        function addToCart(productId, qty = 1) {
+            const product = state.products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = state.cart.find(item => item.id === productId);
+            if (existing) {
+                existing.quantity += qty;
+            } else {
+                state.cart.push({ ...product, quantity: qty });
+            }
+
+            saveToLocalStorage();
+            renderCart();
+            showToast(`Added ${product.name} to cart!`, 'success');
+            openCartDrawer();
+        }
+
+        function updateCartQty(productId, change) {
+            const item = state.cart.find(i => i.id === productId);
+            if (!item) return;
+
+            item.quantity += change;
+            if (item.quantity <= 0) {
+                state.cart = state.cart.filter(i => i.id !== productId);
+            }
+
+            saveToLocalStorage();
+            renderCart();
+        }
+
+        function removeFromCart(productId) {
+            state.cart = state.cart.filter(i => i.id !== productId);
+            saveToLocalStorage();
+            renderCart();
+            showToast('Item removed from cart', 'info');
+        }
+
+        // --- PRODUCT DETAILS MODAL ---
+        function openProductModal(productId) {
+            const product = state.products.find(p => p.id === productId);
+            if (!product) return;
+
+            state.modalProduct = product;
+            state.modalQty = 1;
+
+            document.getElementById('modalProductImage').src = product.image;
+            document.getElementById('modalProductCategory').innerText = product.category;
+            document.getElementById('modalProductName').innerText = product.name;
+            document.getElementById('modalProductPrice').innerText = `$${product.price.toFixed(2)}`;
+            document.getElementById('modalProductDescription').innerText = product.description;
+            document.getElementById('modalQty').innerText = '1';
+
+            document.getElementById('modalAddToCartBtn').onclick = () => {
+                addToCart(product.id, state.modalQty);
+                closeProductModal();
+            };
+
+            const modal = document.getElementById('productModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeProductModal() {
+            const modal = document.getElementById('productModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function adjustModalQty(change) {
+            state.modalQty = Math.max(1, state.modalQty + change);
+            document.getElementById('modalQty').innerText = state.modalQty;
+        }
+
+        // --- CART DRAWER CONTROLLERS ---
+        function openCartDrawer() {
+            renderCart();
+            const drawer = document.getElementById('cartDrawer');
+            drawer.classList.remove('hidden');
+            drawer.classList.add('flex');
+        }
+
+        function closeCartDrawer() {
+            const drawer = document.getElementById('cartDrawer');
+            drawer.classList.remove('flex');
+            drawer.classList.add('hidden');
+        }
+
+        // --- CHECKOUT & ORDER PROCESSING ---
+        function openCheckoutModal() {
+            if (state.cart.length === 0) {
+                showToast('Your cart is empty', 'error');
+                return;
+            }
+            if (!state.currentUser) {
+                showToast('Please sign in to complete your order', 'error');
+                closeCartDrawer();
+                openAuthModal();
+                return;
+            }
+            closeCartDrawer();
+            const modal = document.getElementById('checkoutModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('shipName').value = state.currentUser.name || '';
+        }
+
+        function closeCheckoutModal() {
+            const modal = document.getElementById('checkoutModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function processOrder(e) {
+            e.preventDefault();
+            const newOrder = {
+                id: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+                userEmail: state.currentUser.email,
+                items: [...state.cart],
+                total: state.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0),
+                status: 'Processing',
+                createdAt: new Date().toISOString()
+            };
+
+            state.orders.unshift(newOrder);
+            state.cart = [];
+            saveToLocalStorage();
+            closeCheckoutModal();
+            switchView('orders');
+            showToast('Order placed successfully! 🎉', 'success');
+        }
+
+        // --- USER AUTHENTICATION ---
+        function openAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            state.isRegisterMode = !state.isRegisterMode;
+            const title = document.getElementById('authModalTitle');
+            const nameField = document.getElementById('authNameField');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const toggleText = document.getElementById('authToggleText');
+            const toggleBtn = document.getElementById('authToggleBtn');
+
+            if (state.isRegisterMode) {
+                title.innerText = 'Create Account';
+                nameField.classList.remove('hidden');
+                submitBtn.innerText = 'Register & Sign In';
+                toggleText.innerText = 'Already have an account?';
+                toggleBtn.innerText = 'Sign in';
+            } else {
+                title.innerText = 'User Login';
+                nameField.classList.add('hidden');
+                submitBtn.innerText = 'Sign In';
+                toggleText.innerText = "Don't have an account?";
+                toggleBtn.innerText = 'Register now';
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmailInput').value.trim();
+            const password = document.getElementById('authPasswordInput').value.trim();
+            const name = document.getElementById('authNameInput').value.trim();
+
+            if (state.isRegisterMode) {
+                if (state.users.some(u => u.email === email)) {
+                    showToast('Email is already registered', 'error');
+                    return;
+                }
+                const newUser = { name: name || 'Customer', email, password };
+                state.users.push(newUser);
+                state.currentUser = newUser;
+                showToast('Registration successful! Welcome.', 'success');
+            } else {
+                const user = state.users.find(u => u.email === email && u.password === password);
+                if (!user) {
+                    showToast('Invalid email or password', 'error');
+                    return;
+                }
+                state.currentUser = user;
+                showToast(`Welcome back, ${user.name}!`, 'success');
+            }
+
+            saveToLocalStorage();
+            renderAuthMenu();
+            closeAuthModal();
+        }
+
+        function logoutUser() {
+            state.currentUser = null;
+            saveToLocalStorage();
+            renderAuthMenu();
+            switchView('store');
+            showToast('Signed out successfully', 'info');
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('userDropdown');
+            const trigger = document.getElementById('userMenuBtn');
+            if (dropdown && !dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && !trigger?.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // --- THEME & UTILITIES ---
+        function initTheme() {
+            const isDark = localStorage.getItem('luxe_dark') === 'true' || (!localStorage.getItem('luxe_dark') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const themeIcon = document.getElementById('themeIcon');
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                if (themeIcon) themeIcon.className = 'fa-solid fa-sun text-lg text-amber-400';
+            } else {
+                document.documentElement.classList.remove('dark');
+                if (themeIcon) themeIcon.className = 'fa-solid fa-moon text-lg text-slate-600';
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('luxe_dark', isDark);
+            const themeIcon = document.getElementById('themeIcon');
+            if (themeIcon) themeIcon.className = isDark ? 'fa-solid fa-sun text-lg text-amber-400' : 'fa-solid fa-moon text-lg text-slate-600';
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-indigo-600 text-white' : type === 'error' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-white';
+            
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center space-x-2 animate-in fade-in slide-in-from-bottom-3 duration-200 ${bgClass}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-sm' : type === 'error' ? 'fa-circle-exclamation text-sm' : 'fa-circle-info text-sm'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- INITIALIZER ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            initTheme();
+            renderAuthMenu();
+            renderProducts();
+        });
+    </script>
+</body>
+</html>
